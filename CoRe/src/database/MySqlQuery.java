@@ -118,9 +118,16 @@ public class MySqlQuery {
 				+ "from OneDayTable "
 				+ "group by AreaCode;";
 		ResultSet result = myExecuteQuery(sql);
-		result.last();
-		int numOfRow = result.getRow();
-		int[] data = new int[numOfRow + 1];
+		//result.last();
+		//int numOfRow = result.getRow();
+		int maxNum = -1;
+		while(result.next()){
+			int areaCode = result.getInt("AreaCode");
+			if (maxNum < result.getInt("AreaCode")){
+				maxNum = areaCode;
+			}
+		}
+		int[] data = new int[maxNum + 1];
 		result.beforeFirst();
 		while(result.next()) {
 			data[result.getInt("AreaCode")] = result.getInt("Congestion");
@@ -153,11 +160,7 @@ public class MySqlQuery {
 
 	public static void main (String[] args) throws Exception {
 		MySqlQuery msq = new MySqlQuery();
-		int[] data = msq.dbNewData();
 		msq.insertNewData(10, 10, "OneDayTable");
-		System.out.println(msq.dbNewData(1));
-		for (int i = 0; i < data.length; i++)
-			System.out.println(data[i]);
 	}
 
 	/**

@@ -77,7 +77,8 @@ public class MySqlQuery {
 	/**
 	 * 混雑状況データを送信するメソッドです。
 	 * @param areaNum エリア番号
-	 * @param data 日付
+	 * @param data 混雑状況
+	 * @param tableName テーブル名
 	 */
 	public void insertNewData(int areaNum, int data , String tableName) {
 		Date date = new Date();
@@ -92,22 +93,6 @@ public class MySqlQuery {
 			e.printStackTrace();
 		}
 	}
-	
-	/*
-	 * 引数として混雑状況を取得する場合に使用するメソッド
-	 * */
-	public void insertNewData(int areaNum, int data , String tableName, int Con) {
-		String str2 = Integer.toString(data);
-		String sql = "INSERT INTO " + tableName +
-				" VALUES (" + str2 + "," + areaNum + "," + Con + ");";
-		try {
-			myExecuteUpdate(sql);
-		} catch (SQLException e) {
-			// TODO 自動生成された catch ブロック
-			e.printStackTrace();
-		}
-	}
-
 
 	/**
 	 * 最新の混雑状況データを取得するメソッドです。<br>
@@ -127,7 +112,7 @@ public class MySqlQuery {
 		}
 		return -1;
 	}
-	
+
 	public int[] dbNewData () throws SQLException{
 		String sql = "select MAX(Time), AreaCode, Congestion "
 				+ "from OneDayTable "
@@ -207,5 +192,5 @@ public class MySqlQuery {
 				+ nextNo + "回目のテストです。" + "');");
 		return str;
 	}
-	
+
 }

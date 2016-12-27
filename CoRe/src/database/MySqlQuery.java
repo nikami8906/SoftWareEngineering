@@ -18,6 +18,8 @@ public class MySqlQuery {
 
 	/**
 	 * データベースサーバに接続を行います。
+	 * @throws java.sql.SQLException
+	 * 例外が発生するおそれがあります
 	 */
 	public MySqlQuery() throws  SQLException {
 		try {
@@ -98,6 +100,8 @@ public class MySqlQuery {
 	 * 指定されたエリア番号の混雑状況データを返却します。
 	 * @param areaNum エリア番号
 	 * @return 混雑状況データ
+	 * @throws java.sql.SQLException
+	 * 例外を発生させる恐れがあります。
 	 */
 	public int dbNewData (int areaNum ) throws SQLException {
 		String sql = "select MAX(Time), AreaCode, Congestion "

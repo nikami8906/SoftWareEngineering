@@ -13,7 +13,7 @@ import java.util.Date;
  * ver.1.0
  */
 public class MySqlQuery {
-	//private String TABLE = "テーブルの名前";
+	private String TABLE = "OneDayTable";
 	public Connection con = null;
 
 	/**
@@ -78,13 +78,12 @@ public class MySqlQuery {
 	 * 混雑状況データを送信するメソッドです。
 	 * @param areaNum エリア番号
 	 * @param data 混雑状況
-	 * @param tableName テーブル名
 	 */
-	public void insertNewData(int areaNum, int data , String tableName) {
+	public void insertNewData(int areaNum, int data ) {
 		Date date = new Date();
 	    SimpleDateFormat time = new SimpleDateFormat("HHmm");
 		String str = Integer.toString(data);
-		String sql = "INSERT INTO " + tableName +
+		String sql = "INSERT INTO " + TABLE +
 				" VALUES (" + time.format(date) + "," + areaNum + "," + str + ");";
 		try {
 			myExecuteUpdate(sql);
@@ -160,7 +159,7 @@ public class MySqlQuery {
 
 	public static void main (String[] args) throws Exception {
 		MySqlQuery msq = new MySqlQuery();
-		msq.insertNewData(10, 10, "OneDayTable");
+		msq.insertNewData(10, 10);
 	}
 
 	/**

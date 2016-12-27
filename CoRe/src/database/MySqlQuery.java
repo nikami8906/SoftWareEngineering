@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Date;
 
 /**
  * このクラスは端末でデータを扱うためのクラスです。
@@ -79,10 +78,22 @@ public class MySqlQuery {
 	 * @param data 日付
 	 */
 	public void insertNewData(int areaNum, int data , String tableName) {
-		 Date date = new Date();
-		int CameraNum = 1;
-		int Con = 50;
-		String str1 = Integer.toString(CameraNum);
+		int Con = 50; //混雑状況ダミー
+		String str2 = Integer.toString(data);
+		String sql = "INSERT INTO " + tableName +
+				" VALUES (" + str2 + "," + areaNum + "," + Con + ");";
+		try {
+			myExecuteUpdate(sql);
+		} catch (SQLException e) {
+			// TODO 自動生成された catch ブロック
+			e.printStackTrace();
+		}
+	}
+	
+	/*
+	 * 引数として混雑状況を取得する場合に使用するメソッド
+	 * */
+	public void insertNewData(int areaNum, int data , String tableName, int Con) {
 		String str2 = Integer.toString(data);
 		String sql = "INSERT INTO " + tableName +
 				" VALUES (" + str2 + "," + areaNum + "," + Con + ");";
@@ -156,7 +167,6 @@ public class MySqlQuery {
 		MySqlQuery msq = new MySqlQuery();
 		int[] data = msq.dbNewData();
 		System.out.println(msq.dbNewData(1));
-		msq.insertNewData(1, 1, "OneDayTable");
 		for (int i = 0; i < data.length; i++)
 			System.out.println(data[i]);
 	}

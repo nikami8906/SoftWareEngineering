@@ -121,8 +121,6 @@ public class MySqlQuery {
 				+ "from OneDayTable "
 				+ "group by AreaCode;";
 		ResultSet result = myExecuteQuery(sql);
-		//result.last();
-		//int numOfRow = result.getRow();
 		int maxNum = -1;
 		while(result.next()){
 			int areaCode = result.getInt("AreaCode");

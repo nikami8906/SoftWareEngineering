@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -133,6 +134,7 @@ public class MySqlQuery {
 		while(result.next()) {
 			data[result.getInt("AreaCode")] = result.getInt("Congestion");
 		}
+		result.close();
 		return data;
 	}
 
@@ -141,9 +143,50 @@ public class MySqlQuery {
 	 * @param areaNum エリア番号
 	 * @return 過去の混雑状況データ
 	 */
-	public int dbPastData(int areaNum) {
-		return 77;
+	public int dbPastData(int areaNum) throws SQLException{
+		int[] data = dbPastData();
+		if (data.length > areaNum + 1){
+			return data[areaNum];
+		}else {
+			return -1;
+		}
 	}
+	
+	public int[] dbPastData() throws SQLException{
+		Calendar cal = Calendar.getInstance();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");//sql文用フォーマット
+		String sql = "select * from ThiMinTable" + "\nwhere (";
+		int min = (cal.get(Calendar.MINUTE)/30) * 30;//現在時刻を30分毎にするために切り捨て
+		cal.set(Calendar.MINUTE, min);
+		
+		//4週間前までの、その時刻、その曜日の状況を取得するためのsql文の生成
+		for (int i = 0; i < 3; i++) {
+			cal.add(Calendar.DATE, -7);
+			sql = sql + "Date = " + sdf.format(cal.getTime()) + "\nor ";
+		}
+		cal.add(Calendar.DATE, -7);
+		sql = sql + "Date = " +sdf.format(cal.getTime()) + ");";
+		ResultSet result = myExecuteQuery(sql);
+		
+		int maxNum = 0;
+		while(result.next()){
+			int areaCode = result.getInt("AreaCode");
+			if (maxNum < result.getInt("AreaCode")){
+				maxNum = areaCode;
+			}
+		}
+		result.beforeFirst();
+		int[] data = new int[maxNum + 1];
+		while(result.next()) {
+			data[result.getInt("AreaCode")] += result.getInt("ConSit"); 
+		}
+		for (int i = 0 ; i < data.length; i ++) {
+			data[i] /= 4;
+		}
+		result.close();
+		return data;
+	}
+	
 
 	/**
 	 * 混雑状況データのグラフ用データを取得するメソッドです。
@@ -161,7 +204,11 @@ public class MySqlQuery {
 
 	public static void main (String[] args) throws Exception {
 		MySqlQuery msq = new MySqlQuery();
-		msq.insertNewData(10, 10);
+		System.out.println(msq.dbPastData(1));
+		int[] data = msq.dbPastData();
+		for (int i = 0; i < data.length; i++) {
+			System.out.println(data[i]);
+		}
 	}
 
 	/**
@@ -196,5 +243,6 @@ public class MySqlQuery {
 				+ nextNo + "回目のテストです。" + "');");
 		return str;
 	}
+
 
 }

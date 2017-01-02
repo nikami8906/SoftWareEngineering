@@ -53,7 +53,7 @@ public class MySqlQuery {
 	 * @throws SQLException
 	 * このメソッドはSQLExceptionが発生する可能性があります。
 	 */
-	private ResultSet myExecuteQuery (String sql) throws SQLException {
+	public ResultSet myExecuteQuery (String sql) throws SQLException {
 		Statement stm = con.createStatement();
 		ResultSet rs = stm.executeQuery(sql);
 		return rs;
@@ -69,7 +69,7 @@ public class MySqlQuery {
 	 * @throws SQLException
 	 * 例外が発生する可能性があります
 	 */
-	private int  myExecuteUpdate(String sql) throws SQLException {
+	public int  myExecuteUpdate(String sql) throws SQLException {
 		Statement stm = con.createStatement();
 		int num = stm.executeUpdate(sql);
 		return num;

@@ -262,6 +262,7 @@ public class MySqlQuery {
 			sql = sql.substring(0, sql.length() - 1);
 			sql = sql + ";";
 		}
+		myExecuteUpdate("truncate table OneDayTable");
 		return myExecuteUpdate(sql);
 		
 	}

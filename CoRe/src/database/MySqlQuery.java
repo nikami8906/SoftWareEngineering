@@ -16,6 +16,8 @@ import java.util.Date;
 public class MySqlQuery {
 	private String TABLE = "OneDayTable";
 	public Connection con = null;
+	private int OPEN_TIME = 660;
+	private int CLOSE_TIME = 1320;
 
 	/**
 	 * データベースサーバに接続を行います。
@@ -54,7 +56,7 @@ public class MySqlQuery {
 	 * @throws SQLException
 	 * このメソッドはSQLExceptionが発生する可能性があります。
 	 */
-	public ResultSet myExecuteQuery (String sql) throws SQLException {
+	private ResultSet myExecuteQuery (String sql) throws SQLException {
 		Statement stm = con.createStatement();
 		ResultSet rs = stm.executeQuery(sql);
 		return rs;
@@ -70,7 +72,7 @@ public class MySqlQuery {
 	 * @throws SQLException
 	 * 例外が発生する可能性があります
 	 */
-	public int  myExecuteUpdate(String sql) throws SQLException {
+	private int  myExecuteUpdate(String sql) throws SQLException {
 		Statement stm = con.createStatement();
 		int num = stm.executeUpdate(sql);
 		return num;
@@ -204,11 +206,7 @@ public class MySqlQuery {
 
 	public static void main (String[] args) throws Exception {
 		MySqlQuery msq = new MySqlQuery();
-		System.out.println(msq.dbPastData(1));
-		int[] data = msq.dbPastData();
-		for (int i = 0; i < data.length; i++) {
-			System.out.println(data[i]);
-		}
+		System.out.println("更新件数 :" + msq.insertPreData());
 	}
 
 	/**
@@ -223,9 +221,82 @@ public class MySqlQuery {
 	/**
 	 * 一日の終わりに呼び出すメソッドです。
 	 * 一日のデータを編集し、データベースに格納します。
+	 * @return 更新件数
 	 */
-	public void insertPreData() {
-		return;
+	public int insertPreData() throws SQLException {
+		//データの取得と配列のデータ集計用の配列の確保
+		String sql = "select * from OneDayTable order by AreaCode desc;";
+		ResultSet result = myExecuteQuery(sql);
+		result.next();
+		int maxAreaCode = result.getInt("AreaCode");
+		int[][] data = new int[maxAreaCode + 1][(CLOSE_TIME - OPEN_TIME)/30];
+		int[][] count = new int[maxAreaCode + 1][(CLOSE_TIME - OPEN_TIME)/30];
+		result.beforeFirst();
+		
+		//混雑状況データの集計
+		while(result.next()) {
+			int time = result.getInt("Time");
+			time = changeToMin(time);
+			time = time - OPEN_TIME;
+			data[result.getInt("AreaCode")][time/30] += result.getInt("Congestion");
+			count[result.getInt("AreaCode")][time/30]++;
+		}
+		
+		
+		//混雑状況データの集計とsql文の作成
+		Calendar cal = Calendar.getInstance();
+		String dayOfWeek = getDayOfWeek(cal);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+		String date = sdf.format(cal.getTime());
+		sql = "insert into ThiMinTable values";
+		for(int areaCode = 1; areaCode < maxAreaCode + 1; areaCode++) {
+			for (int time = 0; time < (CLOSE_TIME - OPEN_TIME) / 30 ; time++ ) {
+				int congestion = 0;
+				if (count[areaCode][time] != 0) {
+					congestion = data[areaCode][time] / count[areaCode][time];
+				}
+				sql = sql + "(" + date + changeToMyTimeFormat(time * 30 + OPEN_TIME) + "," + areaCode + ",'" + dayOfWeek + "'," + congestion + "),";
+			}
+		}
+		if (sql != null && sql.length() > 0) {
+			sql = sql.substring(0, sql.length() - 1);
+			sql = sql + ";";
+		}
+		return myExecuteUpdate(sql);
+		
+	}
+	
+	private int changeToMin(int time) {
+		int hour = (time/100);
+		time = hour * 60 + (time - hour * 100);
+		return time;
+	}
+	
+	private int changeToMyTimeFormat(int minute) {
+		int hour = minute/60;
+		int min = minute%60;
+		minute = (hour * 100) + min;
+		return minute;
+	}
+	
+	public static String getDayOfWeek(Calendar cal) {
+		if(cal.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY) {
+			return "月";
+		} else if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.TUESDAY) {
+			return "火";
+		} else if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.WEDNESDAY) {
+			return "水";
+		} else if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.THURSDAY) {
+			return "木";
+		} else if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.FRIDAY) {
+			return "金";
+		} else if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY) {
+			return "土";
+		} else if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY) {
+			return "日";
+		} else {
+			return "";
+		}
 	}
 
 	public String mySqlTest() throws SQLException {

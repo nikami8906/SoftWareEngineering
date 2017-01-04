@@ -206,7 +206,7 @@ public class MySqlQuery {
 
 	public static void main (String[] args) throws Exception {
 		MySqlQuery msq = new MySqlQuery();
-		System.out.println("更新件数 :" + msq.insertPreData());
+		System.out.println(msq.getKey("Ktech"));
 	}
 
 	/**
@@ -215,7 +215,7 @@ public class MySqlQuery {
 	 * @return パスワードのハッシュ値
 	 */
 	public String getKey(String id) throws SQLException {
-		String sql = "select * from LoginTable order by ID desc";
+		String sql = "select * from ManTable order by ID desc";
 		ResultSet result = myExecuteQuery(sql);
 		result.next();
 		if (id.equals(result)) {
@@ -223,6 +223,13 @@ public class MySqlQuery {
 		} else {
 			return null;
 		}
+	}
+	
+	public String getKey2 (String id ) throws SQLException {
+		String sql = "select * from ManTable where ID = '" + id + "';";
+		ResultSet result = myExecuteQuery(sql);
+		result.next();
+		return result.getString("Pass");
 	}
 
 	/**

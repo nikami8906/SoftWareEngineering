@@ -153,14 +153,14 @@ public class MySqlQuery {
 			return -1;
 		}
 	}
-	
+
 	public int[] dbPastData() throws SQLException{
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");//sql文用フォーマット
 		String sql = "select * from ThiMinTable" + "\nwhere (";
 		int min = (cal.get(Calendar.MINUTE)/30) * 30;//現在時刻を30分毎にするために切り捨て
 		cal.set(Calendar.MINUTE, min);
-		
+
 		//4週間前までの、その時刻、その曜日の状況を取得するためのsql文の生成
 		for (int i = 0; i < 3; i++) {
 			cal.add(Calendar.DATE, -7);
@@ -169,7 +169,7 @@ public class MySqlQuery {
 		cal.add(Calendar.DATE, -7);
 		sql = sql + "Date = " +sdf.format(cal.getTime()) + ");";
 		ResultSet result = myExecuteQuery(sql);
-		
+
 		int maxNum = 0;
 		while(result.next()){
 			int areaCode = result.getInt("AreaCode");
@@ -180,7 +180,7 @@ public class MySqlQuery {
 		result.beforeFirst();
 		int[] data = new int[maxNum + 1];
 		while(result.next()) {
-			data[result.getInt("AreaCode")] += result.getInt("ConSit"); 
+			data[result.getInt("AreaCode")] += result.getInt("ConSit");
 		}
 		for (int i = 0 ; i < data.length; i ++) {
 			data[i] /= 4;
@@ -188,7 +188,7 @@ public class MySqlQuery {
 		result.close();
 		return data;
 	}
-	
+
 
 	/**
 	 * 混雑状況データのグラフ用データを取得するメソッドです。
@@ -214,8 +214,15 @@ public class MySqlQuery {
 	 * @param id ログインID
 	 * @return パスワードのハッシュ値
 	 */
-	public String getKey(String id) {
-		return "sdfsdfsdfsdfsdfsdfsdfsdfsdfsd";
+	public String getKey(String id) throws SQLException {
+		String sql = "select * from LoginTable order by ID desc";
+		ResultSet result = myExecuteQuery(sql);
+		result.next();
+		if (id.equals(result)) {
+			return "select result from LoginTable oeder by Pass desc";
+		} else {
+			return null;
+		}
 	}
 
 	/**
@@ -232,7 +239,7 @@ public class MySqlQuery {
 		int[][] data = new int[maxAreaCode + 1][(CLOSE_TIME - OPEN_TIME)/30];
 		int[][] count = new int[maxAreaCode + 1][(CLOSE_TIME - OPEN_TIME)/30];
 		result.beforeFirst();
-		
+
 		//混雑状況データの集計
 		while(result.next()) {
 			int time = result.getInt("Time");
@@ -241,8 +248,8 @@ public class MySqlQuery {
 			data[result.getInt("AreaCode")][time/30] += result.getInt("Congestion");
 			count[result.getInt("AreaCode")][time/30]++;
 		}
-		
-		
+
+
 		//混雑状況データの集計とsql文の作成
 		Calendar cal = Calendar.getInstance();
 		String dayOfWeek = getDayOfWeek(cal);
@@ -264,22 +271,22 @@ public class MySqlQuery {
 		}
 		myExecuteUpdate("truncate table OneDayTable");
 		return myExecuteUpdate(sql);
-		
+
 	}
-	
+
 	private int changeToMin(int time) {
 		int hour = (time/100);
 		time = hour * 60 + (time - hour * 100);
 		return time;
 	}
-	
+
 	private int changeToMyTimeFormat(int minute) {
 		int hour = minute/60;
 		int min = minute%60;
 		minute = (hour * 100) + min;
 		return minute;
 	}
-	
+
 	public static String getDayOfWeek(Calendar cal) {
 		if(cal.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY) {
 			return "月";

@@ -107,9 +107,10 @@ public class MySqlQuery {
 	 * 例外を発生させる恐れがあります。
 	 */
 	public int dbNewData (int areaNum ) throws SQLException {
-		String sql = "select MAX(Time), AreaCode, Congestion "
+		String sql = "select Time, AreaCode, Congestion "
 				+ "from OneDayTable "
-				+ "group by AreaCode;";
+				+ "where Time = (select max(time) from OneDayTable where AreaCode =" + areaNum + ");";
+		
 		ResultSet result = myExecuteQuery(sql);
 		while(result.next()) {
 			if(result.getInt("AreaCode") == areaNum) {
@@ -120,9 +121,9 @@ public class MySqlQuery {
 	}
 
 	public int[] dbNewData () throws SQLException{
-		String sql = "select MAX(Time), AreaCode, Congestion "
+		String sql = "select Time, AreaCode, Congestion "
 				+ "from OneDayTable "
-				+ "group by AreaCode;";
+				+ "where Time = (select max(time) from OneDayTable);";
 		ResultSet result = myExecuteQuery(sql);
 		int maxNum = -1;
 		while(result.next()){
@@ -204,28 +205,25 @@ public class MySqlQuery {
 		return graph_data;
 	}
 
-	public static void main (String[] args) throws Exception {
-		MySqlQuery msq = new MySqlQuery();
-		System.out.println(msq.getKey("Ktech"));
-	}
-
 	/**
 	 * ログインIDからパスワードのハッシュ値を取得するメソッドです。
 	 * @param id ログインID
 	 * @return パスワードのハッシュ値
 	 */
+	/*
 	public String getKey(String id) throws SQLException {
 		String sql = "select * from ManTable order by ID desc";
 		ResultSet result = myExecuteQuery(sql);
 		result.next();
 		if (id.equals(result)) {
-			return "select result from LoginTable oeder by Pass desc";
+			return "select result from ManTable oeder by Pass desc";
 		} else {
 			return null;
 		}
 	}
+	*/
 	
-	public String getKey2 (String id ) throws SQLException {
+	public String getKey (String id ) throws SQLException {
 		String sql = "select * from ManTable where ID = '" + id + "';";
 		ResultSet result = myExecuteQuery(sql);
 		result.next();
@@ -329,6 +327,19 @@ public class MySqlQuery {
 				+ nextNo + "回目のテストです。" + "');");
 		return str;
 	}
+	
+
+	public static void main (String[] args) throws Exception {
+		MySqlQuery msq = new MySqlQuery();
+		msq.insertNewData(7, 99);
+		int[] data = msq.dbNewData();
+		for (int i = 0; i < data.length; i++) {
+			System.out.println(data[i]);
+		}
+		System.out.println(msq.dbNewData(7));
+		
+	}
+
 
 
 }

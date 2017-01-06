@@ -220,13 +220,16 @@ public class MySqlQuery {
 		        int AreaCode = result.getInt("AreaCode");
 		        String Youbi = result.getString("Youbi");
 		        int ConSit = result.getInt("ConSit");
+		        
+		        long d = Date;
 
 		        for(int i = 0; i < 6; i++){
-		        	date[i] = Date / (10 * (12 - i));
+		        	date[i] = (long) (d / (Math.pow(10, 11 - i)));
+		        	d = (long) (d % (Math.pow(10, 11 - i)));
 		        }
 		        y = 1000*date[0] + 100*date[1] + 10*date[2] + date[3];
 		        m = 10*date[4] + date[5];
-		        System.out.println("y:" + y + " m:" + m);
+		        System.out.println(y + " " + m);
 		        if(Quarter == 1){
 		        	if((m == 4 || m == 5) &&
 		        			(year == y && areaNum == AreaCode && day.equals(Youbi))){

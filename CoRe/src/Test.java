@@ -4,8 +4,7 @@ public class Test {
 	public static void main(String args[]) {
 		try {
 			database.MySqlQuery msq = new database.MySqlQuery();
-			String result = msq.mySqlTest();
-			System.out.println(result);
+			System.out.println(msq.getKey("Ktec"));
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

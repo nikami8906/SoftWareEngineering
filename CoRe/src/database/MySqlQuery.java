@@ -212,11 +212,11 @@ public class MySqlQuery {
 
 			ArrayList<Integer> graphList = new ArrayList<Integer>();
 
-			int[] date = new int[6];
-			int y, m;
+			long[] date = new long[6];
+			long y, m;
 
 			while (result.next()) {
-				int Date = result.getInt("Date");
+				long Date = result.getLong("Date");
 		        int AreaCode = result.getInt("AreaCode");
 		        String Youbi = result.getString("Youbi");
 		        int ConSit = result.getInt("ConSit");
@@ -224,9 +224,9 @@ public class MySqlQuery {
 		        for(int i = 0; i < 6; i++){
 		        	date[i] = Date / (10 * (12 - i));
 		        }
-
 		        y = 1000*date[0] + 100*date[1] + 10*date[2] + date[3];
 		        m = 10*date[4] + date[5];
+		        System.out.println("y:" + y + " m:" + m);
 		        if(Quarter == 1){
 		        	if((m == 4 || m == 5) &&
 		        			(year == y && areaNum == AreaCode && day.equals(Youbi))){
@@ -247,6 +247,8 @@ public class MySqlQuery {
 		        			(year == y && areaNum == AreaCode && day.equals(Youbi))){
 			        	graphList.add(ConSit);
 			        }
+		        } else {
+		        	System.out.println("ふぉーーーー");
 		        }
 			}
 

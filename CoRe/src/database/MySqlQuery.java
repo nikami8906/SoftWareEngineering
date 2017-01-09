@@ -268,20 +268,66 @@ public class MySqlQuery {
 	
 	public int[] dbGraphData(int year, int Quarter, String day, int areaNum)  throws SQLException  {
 		
-		String sql = "select * from ThiMinTable where Date = " + year ;
-		
-		int[] aaa = null;
-		return aaa;
+		String sql = "select * from ThiMinTable where " + quarterToMonth(year, Quarter) + " and Youbi = '"
+				       + day + "' order by AreaCode desc;";
+		ResultSet result = myExecuteQuery(sql);
+		result.next();
+		int maxAreaNum = result.getInt("AreaCode");
+		result.beforeFirst();
+		int[][] data = new int [maxAreaNum+1][(CLOSE_TIME - OPEN_TIME) / 30];
+		int[][] count = new int [maxAreaNum+1][(CLOSE_TIME - OPEN_TIME) / 30];
+		while(result.next()) {
+			long date = result.getLong("Date");
+			date = date - (date/10000 * 10000);
+			date = (changeToMin((int)date) - OPEN_TIME) / 30;
+			data[result.getInt("AreaCode")][(int)date] += result.getInt("ConSit");
+			count[result.getInt("AreaCode")][(int)date]++;
+		}
+		for (int i = 0; i <= maxAreaNum; i++ ) {
+			for (int j = 0; j < (CLOSE_TIME - OPEN_TIME)/30; j++ ) {
+				if(count[i][j] != 0) {
+					data[i][j] /= count[i][j];
+				}
+			}
+		}
+		if (areaNum == 0) {
+			int[] resultData = new int[data[1].length];
+			int[] dataCount = new int[resultData.length];
+			for (int i = 1; i < maxAreaNum; i++) {
+				for (int j = 0; j <(CLOSE_TIME - OPEN_TIME)/30; j ++){
+					resultData[j] += data[i][j];
+					if (data[i][j] != 0) {
+						dataCount[j]++;
+					}
+				}
+			}
+			for (int i = 0; i < (CLOSE_TIME - OPEN_TIME)/30; i++) {
+				resultData[i] = resultData[i] / dataCount[i];
+			}
+			return resultData;
+		}
+		return data[6];
 	}
 	
-	private static void quarterToMonth(int Quarter, int year) {
-		String str = null;
-		switch (Quarter) {
-		case 1:
-			str = "Date > " + year + "04000000 and Date < " + year + "05312359";
-			break;
+	private static String quarterToMonth(int year, int quarter) {
+		String str = "";
+		switch (quarter) {
+			case 1:
+				str = "Date > " + year + "04000000 and Date < " + year + "05312359";
+				break;
+			case 2:
+				str = "Date > " + year + "06000000 and Date < " + year + "07312359";
+				break;
+			case 3:
+				str = "Date > " + year + "10000000 and Date < " + year + "11312359";
+				break;
+			case 4:
+				str = "Date > " + year + "12000000 and ";
+				year ++;
+				str += "Date < " + year + "01312359";
+				break;
 		}
-		System.out.println(str);
+		return str;
 	}
 	/**
 	 * ログインIDからパスワードのハッシュ値を取得するメソッドです。
@@ -414,8 +460,12 @@ public class MySqlQuery {
 	
 
 	public static void main (String[] args) throws Exception {
-		quarterToMonth(1, 2012);
-		
+		MySqlQuery msq = new MySqlQuery();
+		int[] a =msq.dbGraphData(2012,4,"木",0);
+		System.out.println();
+		for (int i = 0 ; i < a.length; i ++) {
+			System.out.print(a[i] + " ");
+		}
 	}
 
 

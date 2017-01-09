@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -203,7 +202,9 @@ public class MySqlQuery {
 	 * @param day 曜日
 	 * @param areaNum エリア番号
 	 * @return グラフ用配列データ
-	 */	public int[] dbGraphData(int year, int Quarter, String day, int areaNum)  throws SQLException  {
+	 */
+	/*
+	public int[] dbGraphData(int year, int Quarter, String day, int areaNum)  throws SQLException  {
 			String sql = "SELECT * "
 					+ "from ThiMinTable "
 					+ "group by AreaCode;";
@@ -262,6 +263,26 @@ public class MySqlQuery {
 			}
 			return graph_data;
 		}
+		
+		*/
+	
+	public int[] dbGraphData(int year, int Quarter, String day, int areaNum)  throws SQLException  {
+		
+		String sql = "select * from ThiMinTable where Date = " + year ;
+		
+		int[] aaa = null;
+		return aaa;
+	}
+	
+	private static void quarterToMonth(int Quarter, int year) {
+		String str = null;
+		switch (Quarter) {
+		case 1:
+			str = "Date > " + year + "04000000 and Date < " + year + "05312359";
+			break;
+		}
+		System.out.println(str);
+	}
 	/**
 	 * ログインIDからパスワードのハッシュ値を取得するメソッドです。
 	 * @param id ログインID
@@ -393,13 +414,7 @@ public class MySqlQuery {
 	
 
 	public static void main (String[] args) throws Exception {
-		MySqlQuery msq = new MySqlQuery();
-		msq.insertNewData(7, 99);
-		int[] data = msq.dbNewData();
-		for (int i = 0; i < data.length; i++) {
-			System.out.println(data[i]);
-		}
-		System.out.println(msq.dbNewData(7));
+		quarterToMonth(1, 2012);
 		
 	}
 

@@ -14,9 +14,21 @@ import java.util.Date;
  * ver.1.0
  */
 public class MySqlQuery {
+	/**
+	 * 一日データテーブルで参照するテーブル名
+	 */
 	private String TABLE = "OneDayTable";
-	public Connection con = null;
+	/**
+	 * 接続を表すクラス
+	 */
+	private Connection connection = null;
+	/**
+	 * 開店時間
+	 */
 	private int OPEN_TIME = 660;
+	/**
+	 * 閉店時間
+	 */
 	private int CLOSE_TIME = 1320;
 
 	/**
@@ -26,25 +38,15 @@ public class MySqlQuery {
 	 */
 	public MySqlQuery() throws  SQLException {
 		try {
-			con = MySqlConnection.getConnection();
+			connection = MySqlConnection.getConnection();
 		} catch (SQLException e) {
-			System.out.println("データベース接続に失敗しました");
-			if (con != null) {
+			if (connection != null) {
 				try {
-					con.close();
+					connection.close();
 				} catch (SQLException ec) {
-					System.out.println("データベースのクローズに失敗しました。");
 				}
 			}
 		}
-	}
-
-	/**
-	 *
-	 * @throws SQLException
-	 */
-	private void close() throws SQLException{
-		con.close();
 	}
 
 	/**
@@ -57,7 +59,7 @@ public class MySqlQuery {
 	 * このメソッドはSQLExceptionが発生する可能性があります。
 	 */
 	private ResultSet myExecuteQuery (String sql) throws SQLException {
-		Statement stm = con.createStatement();
+		Statement stm = connection.createStatement();
 		ResultSet rs = stm.executeQuery(sql);
 		return rs;
 	}
@@ -73,7 +75,7 @@ public class MySqlQuery {
 	 * 例外が発生する可能性があります
 	 */
 	private int  myExecuteUpdate(String sql) throws SQLException {
-		Statement stm = con.createStatement();
+		Statement stm = connection.createStatement();
 		int num = stm.executeUpdate(sql);
 		return num;
 	}
@@ -110,11 +112,13 @@ public class MySqlQuery {
 	 * 例外を発生させる恐れがあります。
 	 */
 	public int dbNewData (int areaNum ) throws SQLException {
+		//sql文の作成とデータの取得。
 		String sql = "select Time, AreaCode, Congestion "
 				+ "from OneDayTable "
 				+ "where Time = (select max(time) from OneDayTable where AreaCode =" + areaNum + ");";
-		
 		ResultSet result = myExecuteQuery(sql);
+
+		//混雑状況データの返却
 		while(result.next()) {
 			if(result.getInt("AreaCode") == areaNum) {
 				return result.getInt("Congestion");
@@ -128,7 +132,9 @@ public class MySqlQuery {
 				+ "from OneDayTable "
 				+ "where Time = (select max(time) from OneDayTable);";
 		ResultSet result = myExecuteQuery(sql);
-		int maxNum = -1;
+		int maxNum = 0;
+
+		//集計用の配列の確保
 		while(result.next()){
 			int areaCode = result.getInt("AreaCode");
 			if (maxNum < result.getInt("AreaCode")){
@@ -137,6 +143,8 @@ public class MySqlQuery {
 		}
 		int[] data = new int[maxNum + 1];
 		result.beforeFirst();
+
+		//データの格納
 		while(result.next()) {
 			data[result.getInt("AreaCode")] = result.getInt("Congestion");
 		}
@@ -148,6 +156,8 @@ public class MySqlQuery {
 	 * 過去4週間の現在時刻の混雑状況データを取得するメソッドです。
 	 * @param areaNum エリア番号
 	 * @return 過去の混雑状況データ
+	 * @throws SQLException
+	 * 例外が発生する可能性があります
 	 */
 	public int dbPastData(int areaNum) throws SQLException{
 		int[] data = dbPastData();
@@ -157,7 +167,12 @@ public class MySqlQuery {
 			return -1;
 		}
 	}
-
+/**
+ * このメソッドは使用しないでください。
+ * @return 過去の混雑状況データ。
+ * @throws SQLException
+ * 例外が発生する可能性があります。
+ */
 	public int[] dbPastData() throws SQLException{
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");//sql文用フォーマット
@@ -201,81 +216,24 @@ public class MySqlQuery {
 	 * @param Quarter クォータ
 	 * @param day 曜日
 	 * @param areaNum エリア番号
-	 * @return グラフ用配列データ
+	 * @return グラフ用配列データ	
+	 * @throws SQLException
+	 * 例外が発生する可能性があります。
 	 */
-	/*
 	public int[] dbGraphData(int year, int Quarter, String day, int areaNum)  throws SQLException  {
-			String sql = "SELECT * "
-					+ "from ThiMinTable "
-					+ "group by AreaCode;";
-
-			ResultSet result = myExecuteQuery(sql);
-
-			ArrayList<Integer> graphList = new ArrayList<Integer>();
-
-			long[] date = new long[6];
-			long y, m;
-
-			while (result.next()) {
-				long Date = result.getLong("Date");
-		        int AreaCode = result.getInt("AreaCode");
-		        String Youbi = result.getString("Youbi");
-		        int ConSit = result.getInt("ConSit");
-		        
-		        long d = Date;
-
-		        for(int i = 0; i < 6; i++){
-		        	date[i] = (long) (d / (Math.pow(10, 11 - i)));
-		        	d = (long) (d % (Math.pow(10, 11 - i)));
-		        }
-		        y = 1000*date[0] + 100*date[1] + 10*date[2] + date[3];
-		        m = 10*date[4] + date[5];
-		        System.out.println(y + " " + m);
-		        if(Quarter == 1){
-		        	if((m == 4 || m == 5) &&
-		        			(year == y && areaNum == AreaCode && day.equals(Youbi))){
-			        	graphList.add(ConSit);
-			        }
-		        } else if(Quarter == 2){
-		        	if((m == 6 || m == 7 || m == 8) &&
-		        			(year == y && areaNum == AreaCode && day.equals(Youbi))){
-			        	graphList.add(ConSit);
-			        }
-		        } else if(Quarter == 3){
-		        	if((m == 10 || m == 11) &&
-		        			(year == y && areaNum == AreaCode && day.equals(Youbi))){
-			        	graphList.add(ConSit);
-			        }
-		        } else if(Quarter == 4){
-		        	if((m == 1 || m == 2 || m == 12) &&
-		        			(year == y && areaNum == AreaCode && day.equals(Youbi))){
-			        	graphList.add(ConSit);
-			        }
-		        } else {
-		        	System.out.println("ふぉーーーー");
-		        }
-			}
-
-			result.close();
-			int[] graph_data = new int[graphList.size()];
-			for(int i = 0; i < graphList.size(); i++){
-				graph_data[i] = graphList.get(i);
-			}
-			return graph_data;
-		}
-		
-		*/
-	
-	public int[] dbGraphData(int year, int Quarter, String day, int areaNum)  throws SQLException  {
-		
+		//送信するsql文の作成と送信
 		String sql = "select * from ThiMinTable where " + quarterToMonth(year, Quarter) + " and Youbi = '"
 				       + day + "' order by AreaCode desc;";
 		ResultSet result = myExecuteQuery(sql);
+
+		//集計用の配列の確保
 		result.next();
 		int maxAreaNum = result.getInt("AreaCode");
 		result.beforeFirst();
 		int[][] data = new int [maxAreaNum+1][(CLOSE_TIME - OPEN_TIME) / 30];
 		int[][] count = new int [maxAreaNum+1][(CLOSE_TIME - OPEN_TIME) / 30];
+
+		//配列にデータを格納して、集計を行う。
 		while(result.next()) {
 			long date = result.getLong("Date");
 			date = date - (date/10000 * 10000);
@@ -290,6 +248,8 @@ public class MySqlQuery {
 				}
 			}
 		}
+
+		//返却用のデータの作成
 		if (areaNum == 0) {
 			int[] resultData = new int[data[1].length];
 			int[] dataCount = new int[resultData.length];
@@ -308,7 +268,8 @@ public class MySqlQuery {
 		}
 		return data[6];
 	}
-	
+
+	//指定されたクォータをsqlの条件式として範囲を返却します。
 	private static String quarterToMonth(int year, int quarter) {
 		String str = "";
 		switch (quarter) {
@@ -333,20 +294,9 @@ public class MySqlQuery {
 	 * ログインIDからパスワードのハッシュ値を取得するメソッドです。
 	 * @param id ログインID
 	 * @return パスワードのハッシュ値
+	 * @throws SQLException
+	 * 	例外が発生する可能性があります
 	 */
-	/*
-	public String getKey(String id) throws SQLException {
-		String sql = "select * from ManTable order by ID desc";
-		ResultSet result = myExecuteQuery(sql);
-		result.next();
-		if (id.equals(result)) {
-			return "select result from ManTable oeder by Pass desc";
-		} else {
-			return null;
-		}
-	}
-	*/
-	
 	public String getKey (String id ) throws SQLException {
 		String sql = "select * from ManTable where ID = '" + id + "';";
 		String str = null;
@@ -364,6 +314,8 @@ public class MySqlQuery {
 	 * 一日の終わりに呼び出すメソッドです。
 	 * 一日のデータを編集し、データベースに格納します。
 	 * @return 更新件数
+	 * @throws SQLException
+	 * 	例外が発生する可能性があります。
 	 */
 	public int insertPreData() throws SQLException {
 		//データの取得と配列のデータ集計用の配列の確保
@@ -404,17 +356,22 @@ public class MySqlQuery {
 			sql = sql.substring(0, sql.length() - 1);
 			sql = sql + ";";
 		}
+
+		//データベースの更新
 		myExecuteUpdate("truncate table OneDayTable");
+		result.close();
 		return myExecuteUpdate(sql);
 
 	}
 
+	//HHmm形式を分に変換
 	private int changeToMin(int time) {
 		int hour = (time/100);
 		time = hour * 60 + (time - hour * 100);
 		return time;
 	}
 
+	//分をHHmm形式に変換
 	private int changeToMyTimeFormat(int minute) {
 		int hour = minute/60;
 		int min = minute%60;
@@ -422,7 +379,8 @@ public class MySqlQuery {
 		return minute;
 	}
 
-	public static String getDayOfWeek(Calendar cal) {
+	//Calendar型のデータのセットされた日付の曜日を漢字一文字で取得する。
+	private static String getDayOfWeek(Calendar cal) {
 		if(cal.get(Calendar.DAY_OF_WEEK) == Calendar.MONDAY) {
 			return "月";
 		} else if (cal.get(Calendar.DAY_OF_WEEK) == Calendar.TUESDAY) {
@@ -442,6 +400,12 @@ public class MySqlQuery {
 		}
 	}
 
+	/**
+	 * データベースからのデータの取得と、更新をテストするメソッドです。
+	 * @return データベースの接続結果
+	 * @throws SQLException
+	 * 例外が発生する可能性があります。
+	 */
 	public String mySqlTest() throws SQLException {
 		ResultSet result = myExecuteQuery("select * from test order by column1 asc");
 		result.next();
@@ -457,17 +421,5 @@ public class MySqlQuery {
 				+ nextNo + "回目のテストです。" + "');");
 		return str;
 	}
-	
-
-	public static void main (String[] args) throws Exception {
-		MySqlQuery msq = new MySqlQuery();
-		int[] a =msq.dbGraphData(2012,4,"木",0);
-		System.out.println();
-		for (int i = 0 ; i < a.length; i ++) {
-			System.out.print(a[i] + " ");
-		}
-	}
-
-
 
 }

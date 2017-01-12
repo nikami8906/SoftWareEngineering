@@ -159,8 +159,8 @@ public class MySqlQuery {
 	 * @throws SQLException
 	 * 例外が発生する可能性があります
 	 */
-	public int dbPastData(int areaNum) throws SQLException{
-		int[] data = dbPastData();
+	public int dbPastData(int areaNum, int min) throws SQLException{
+		int[] data = dbPastData(min);
 		if (data.length > areaNum + 1){
 			return data[areaNum];
 		}else {
@@ -173,11 +173,12 @@ public class MySqlQuery {
  * @throws SQLException
  * 例外が発生する可能性があります。
  */
-	public int[] dbPastData() throws SQLException{
+	public int[] dbPastData(int min) throws SQLException{
 		Calendar cal = Calendar.getInstance();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmm");//sql文用フォーマット
 		String sql = "select * from ThiMinTable" + "\nwhere (";
-		int min = (cal.get(Calendar.MINUTE)/30) * 30;//現在時刻を30分毎にするために切り捨て
+		min = OPEN_TIME + min * 30;//現在時刻を30分毎にするために切り捨て
+		cal.set(Calendar.HOUR_OF_DAY, 0);
 		cal.set(Calendar.MINUTE, min);
 
 		//4週間前までの、その時刻、その曜日の状況を取得するためのsql文の生成
@@ -216,7 +217,7 @@ public class MySqlQuery {
 	 * @param Quarter クォータ
 	 * @param day 曜日
 	 * @param areaNum エリア番号
-	 * @return グラフ用配列データ	
+	 * @return グラフ用配列データ
 	 * @throws SQLException
 	 * 例外が発生する可能性があります。
 	 */
@@ -420,6 +421,11 @@ public class MySqlQuery {
 				+ nextNo + "', '"
 				+ nextNo + "回目のテストです。" + "');");
 		return str;
+	}
+
+	public static void main(String[] args) throws SQLException {
+		MySqlQuery msq = new MySqlQuery();
+		System.out.println(msq.dbPastData(1, 1));
 	}
 
 }
